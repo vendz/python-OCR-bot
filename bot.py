@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
 def start(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /start is issued."""
     name = update.message.from_user.first_name
-    update.message.reply_text('Hello! '+name)
+    update.message.reply_text('Hello! '+name + constants.welcome_text)
 
 
 def help_command(update: Update, context: CallbackContext) -> None:
@@ -51,7 +51,7 @@ def help_command(update: Update, context: CallbackContext) -> None:
 
 def donate(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /denate is issued."""
-    update.message.reply_text('Donate!')
+    update.message.reply_text(constants.donate_text)
 
 
 def convert_image(update: Update, context: CallbackContext) -> None:
