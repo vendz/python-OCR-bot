@@ -1,3 +1,5 @@
 python-telegram-bot
 pytesseract
 tesseract
+Pillow
+Image
