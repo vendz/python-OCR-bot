@@ -18,6 +18,13 @@ bot.
 """
 
 import logging
+import pytesseract
+import os
+import constants
+try:
+    from PIL import Image
+except ImportError:
+    import Image
 
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
@@ -50,26 +57,27 @@ def donate(update: Update, context: CallbackContext) -> None:
 
 
 def convert_image(update: Update, context: CallbackContext) -> None:
-    file_id = update.message.photo[-1].file_id
-    newFile = context.bot.get_file(file_id)
-    newFile.download('test.jpg')
-    filename = 'test.jpg'
-    # now we have access to photofile
-    update.message.reply_text('yeah, I got it and downloaded it!')
-
+    """send reply to user's message"""
+    chat_id = update.message.chat_id
     try:
-        from PIL import Image
-    except ImportError:
-        import Image
-    import pytesseract
+        photo_file = update.message.photo[-1].get_file()
+        img_name = str(chat_id)+'.jpg'
+        photo_file.download(img_name)
+        output=pytesseract.image_to_string(Image.open(img_name))
+        if output:
+            update.message.reply_text('`'+str(output)+'`\n\nImage to Text Generated using @imagereaderbot', reply_to_message_id = update.message.message_id)
+        else:
+            update.message.reply_text(constants.no_text_found)
+    except Exception as e:
+        update.message.reply_text("Error Occured: `"+str(e)+"`")
+    finally:
+        try:
+            os.remove(img_name)
+        except Exception:
+            pass
 
-    # Simple image to string
-    extracted_sting = (pytesseract.image_to_string(Image.open(filename)))
-    update.message.reply_text(extracted_sting)
-
-def echo(update: Update, context: CallbackContext) -> None:
-    """Echo the user message."""
-    update.message.reply_text(update.message.text)
+def reply_to_text_message(update: Update, context: CallbackContext) -> None:
+    update.message.reply_text(constants.reply_to_text_message)
 
 def main():
     """Start the bot."""
@@ -87,7 +95,7 @@ def main():
     dispatcher.add_handler(CommandHandler("donate", donate))
 
     # on noncommand i.e message - echo the message on Telegram
-    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, echo))
+    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, reply_to_text_message))
     dispatcher.add_handler(MessageHandler(Filters.photo & ~Filters.command, convert_image))
 
     # Start the Bot
