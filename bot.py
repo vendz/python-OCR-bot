@@ -16,16 +16,14 @@ Basic Echobot example, repeats messages.
 Press Ctrl-C on the command line or send a signal to the process to stop the
 bot.
 """
-
-import logging
-import pytesseract
-import os
-import constants
 try:
     from PIL import Image
 except ImportError:
     import Image
-
+import pytesseract
+import logging
+import constants
+import os
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
 
@@ -57,19 +55,20 @@ def donate(update: Update, context: CallbackContext) -> None:
 
 
 def convert_image(update: Update, context: CallbackContext) -> None:
-    """send reply to user's message"""
     chat_id = update.message.chat_id
     try:
-        photo_file = update.message.photo[-1].get_file()
+        file_id = update.message.photo[-1].get_file()
         img_name = str(chat_id)+'.jpg'
-        photo_file.download(img_name)
-        output=pytesseract.image_to_string(Image.open(img_name))
-        if output:
-            update.message.reply_text('`'+str(output)+'`\n\nImage to Text Generated using @imagereaderbot', reply_to_message_id = update.message.message_id)
+        file_id.download(img_name)
+        extracted_sting = (pytesseract.image_to_string(Image.open(img_name)))
+        if extracted_sting:
+            update.message.reply_text('`'+str(extracted_sting)+'`\n\nImage to Text Generated using @advancedocr_bot', reply_to_message_id = update.message.message_id)
         else:
             update.message.reply_text(constants.no_text_found)
+    
     except Exception as e:
         update.message.reply_text("Error Occured: `"+str(e)+"`")
+    
     finally:
         try:
             os.remove(img_name)
